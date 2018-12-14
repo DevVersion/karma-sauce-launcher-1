@@ -18,19 +18,9 @@ export function SaucelabsReporter(logger, browserMap: BrowserMap) {
   this.onBrowserComplete = function (browser) {
     const result = browser.lastResult;
     const browserId = browser.id;
-
-    if (result.disconnected) {
-      log.error('✖ Browser disconnected');
-    }
-
-    if (result.error) {
-      log.error('✖ Tests errored');
-    }
-
     const browserData = browserMap.get(browserId);
 
-    // Do nothing if the current browser has not been launched through the Saucelabs
-    // launcher.
+    // Do nothing if the current browser has not been launched through the Saucelabs launcher.
     if (!browserData) {
       return;
     }
@@ -44,12 +34,25 @@ export function SaucelabsReporter(logger, browserMap: BrowserMap) {
       proxy: browserData.proxy,
     });
     const updateJob = promisify(apiInstance.updateJob.bind(apiInstance));
+    const stopJob = promisify(apiInstance.stopJob.bind(apiInstance));
     const hasPassed = !(result.failed || result.error || result.disconnected);
 
     // Update the job by reporting the test results. Also we need to store the promise here
     // because in case "onExit" is being called, we want to wait for the API calls to finish.
     pendingUpdates.push(updateJob(sessionId, {passed: hasPassed, 'custom-data': result})
-      .catch(error => log.error('Could not report results to Saucelabs: %s', error)));
+      .catch(error => log.warn('Could not report results to Saucelabs: %s', error)));
+
+    if (result.error) {
+      log.error('✖ Tests on Saucelabs errored');
+    } else if (result.disconnected) {
+      log.error('✖ Saucelabs browser disconnected');
+
+      // Since the browser disconnected from Saucelabs and the launcher does not explicitly
+      // quit the shutdown the driver instance, we manually want to stop the job so that
+      // we don't reserve unused and limited resources which aren't being re-used anyway.
+      pendingUpdates.push(stopJob(sessionId, {})
+        .catch(error => log.warn('Could not terminate job for disconnected browser: %s', error)))
+    }
   };
 
   // Whenever this method is being called, we just need to wait for all API calls to finish,

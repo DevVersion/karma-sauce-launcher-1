@@ -1,4 +1,5 @@
 module.exports = function (config) {
+
   if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
     console.log('Make sure the SAUCE_USERNAME and SAUCE_ACCESS_KEY environment variables are set.')
     process.exit(1)
@@ -10,18 +11,16 @@ module.exports = function (config) {
     sl_chrome: {
       base: 'SauceLabs',
       browserName: 'chrome',
-      platform: 'Windows 7',
-      version: '35'
+      version: 'latest'
     },
     sl_firefox: {
       base: 'SauceLabs',
       browserName: 'firefox',
-      version: '30'
+      version: 'latest'
     },
     sl_ie_11: {
       base: 'SauceLabs',
       browserName: 'internet explorer',
-      platform: 'Windows 8.1',
       version: '11'
     }
   };
@@ -39,16 +38,14 @@ module.exports = function (config) {
     sauceLabs: {
       testName: 'Karma and Sauce Labs demo',
       recordScreenshots: false,
-      connectOptions: {
-        port: 5757,
-        logfile: 'sauce_connect.log'
-      },
+      tunnelIdentifier: 'paul-test-saucelabs-stability',
+      startConnect: true,
       public: 'public'
     },
     // Increase timeout in case connection in CI is slow
     captureTimeout: 120000,
     customLaunchers: customLaunchers,
-    browsers: Object.keys(customLaunchers),
+    browsers: ['sl_chrome'],
     singleRun: true
   })
 };

@@ -67,7 +67,7 @@ export function SaucelabsLauncher(args,
       const sessionId = (await driver.getSession()).getId();
 
       log.info('%s session at https://saucelabs.com/tests/%s', browserName, sessionId);
-      log.debug('Opening "%s" on the selenium client', pageUrl);
+      log.info('Opening "%s" on the browser (%s)', pageUrl, browserName);
 
       // Store the information about the current session in the browserMap. This is necessary
       // because otherwise the Saucelabs reporter is not able to report results.
@@ -90,8 +90,7 @@ export function SaucelabsLauncher(args,
       // able to retry connecting if Saucelabs itself terminated the session (and not Karma)
       // For example if the "idleTimeout" is exceeded and Saucelabs errored the session. See:
       // https://wiki.saucelabs.com/display/DOCS/Test+Didn%27t+See+a+New+Command+for+90+Seconds
-      log.error('Could not quit the Saucelabs selenium connection. Failure message:');
-      log.error(e);
+      log.error('Could not quit the Saucelabs selenium connection. Failure message: %s', e);
     }
 
     // Reset connected drivers in case the launcher will be reused.
